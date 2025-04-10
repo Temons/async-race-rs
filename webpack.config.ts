@@ -15,13 +15,17 @@ const config: Configuration = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   resolve: {
     extensions: ['.ts', '.js'],
   },
   devServer: {
-    static: './dist',
+    static: './public',
     port: 8080,
     open: true,
   },
