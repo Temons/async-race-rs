@@ -6,6 +6,7 @@ export interface EngineResponse {
 }
 
 export const startEngine = async (id: number): Promise<EngineResponse> => {
+  console.log('startEngine', id);
   const res = await fetch(`${BASE_URL}/engine?id=${id}&status=started`, { method: 'PATCH' });
   return res.json();
 };
