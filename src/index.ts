@@ -1,35 +1,35 @@
-import { initGarage } from './components/garageController';
+import { initGarage, removePopup } from './components/garageController';
+import { initWinners } from './components/winnersController';
 import './styles/garage.css';
 
 const app = document.getElementById('app');
 
 const renderView = async (view: string): Promise<void> => {
-  if (view === 'garage') {
-    await initGarage();
-  } else {
-    app!.innerHTML = `
-      <div class="top-panel">
-        <div class="nav-buttons">
-          <button id="garage-btn">TO GARAGE</button>
-          <button id="winners-btn">TO WINNERS</button>
-        </div>
-        <h1 style="margin-top: 30px;">Winners Page</h1>
-      </div>
-    `;
-  }
+  if (!app) return;
 
-  // Назначаем обработчики переходов каждый раз заново
-  document.getElementById('garage-btn')?.addEventListener('click', () => renderView('garage'));
-  document.getElementById('winners-btn')?.addEventListener('click', () => renderView('winners'));
+  removePopup(); // Убираем попап при переходе
 
   window.history.pushState({ view }, '', `#${view}`);
+
+  if (view === 'garage') {
+    await initGarage(); // Загружаем гараж
+  } else if (view === 'winners') {
+    await initWinners(); // Загружаем победителей
+  }
+
+  // Назначаем навигационные кнопки (после рендера нового DOM)
+  document.getElementById('garage-btn')?.addEventListener('click', () => renderView('garage'));
+  document.getElementById('winners-btn')?.addEventListener('click', () => renderView('winners'));
 };
 
+// Обрабатываем переход по истории
 window.onpopstate = () => {
   const view = window.location.hash.replace('#', '') || 'garage';
   renderView(view);
 };
 
+// Начальная загрузка
 document.addEventListener('DOMContentLoaded', () => {
-  renderView('garage');
+  const view = window.location.hash.replace('#', '') || 'garage';
+  renderView(view);
 });
