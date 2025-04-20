@@ -9,7 +9,6 @@ import {
 import { renderGarage } from '../views/garageView';
 import { generateRandomCars } from '../utils/random';
 import { driveCar, startEngine, stopEngine } from '../api/engineApi';
-import { animateCar } from '../utils/animation';
 import { initWinners } from './winnersController';
 
 let selectedCarId: number | null = null;
@@ -21,13 +20,12 @@ const limit = 7;
 let currentPopup: HTMLDivElement | null = null;
 
 export const showPopup = (text: string): void => {
-  if (currentPopup) return; // если уже показан, повторно не создавать
+  if (currentPopup) return;
 
   const popup = document.createElement('div');
   popup.textContent = text;
   popup.className = 'race-popup';
 
-  // Стили
   popup.style.position = 'fixed';
   popup.style.top = '50%';
   popup.style.left = '50%';
@@ -57,10 +55,16 @@ const updateCarList = async () => {
   const page = document.getElementById('garage-page');
   if (!list || !count || !page) return;
 
+  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+
   const { cars, total } = await getCars({ page: currentPage, limit });
+
   count.textContent = total.toString();
   page.textContent = currentPage.toString();
 
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage * limit >= total;
   list.innerHTML = cars.map((car) => `
   <div class="car-row" data-id="${car.id}">
     
@@ -108,7 +112,7 @@ const updateCarList = async () => {
       updateNameInput.value = car.name;
       updateColorInput.value = car.color;
 
-      selectedCarId = id; // сохраняем id выбранной машины
+      selectedCarId = id;
     });
   });
 
@@ -124,25 +128,22 @@ const updateCarList = async () => {
         const distance = track.offsetWidth - carIcon.offsetWidth;
         const time = distance / velocity;
 
-        // Запускаем анимацию
         carIcon.style.transition = `transform ${time}s linear`;
         carIcon.style.transform = `translateX(${distance}px)`;
 
-        // Ждём подтверждение, что можно ехать
         const drive = await driveCar(id);
 
         if (!drive.success) {
-          // Остановить машинку прямо где она есть:
           const computedStyle = getComputedStyle(carIcon);
           const matrix = new WebKitCSSMatrix(computedStyle.transform);
           const currentX = matrix.m41;
 
           carIcon.style.transition = 'none';
           carIcon.style.transform = `translateX(${currentX}px)`;
-          console.warn(`🚫 Машина ${id} заглохла на ${Math.round(currentX)}px`);
+          console.warn(`🚫 Car ${id} stalled at ${Math.round(currentX)}px`);
         }
       } catch (error) {
-        console.error('❌ Ошибка при запуске машины:', error);
+        console.error('❌ Error starting the engine:', error);
       }
     });
   });
@@ -168,7 +169,6 @@ export const initGarage = async () => {
   app.innerHTML = renderGarage();
   await updateCarList();
 
-  // 🎯 Обработчики
   document.getElementById('create-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = (document.getElementById('create-name') as HTMLInputElement).value;

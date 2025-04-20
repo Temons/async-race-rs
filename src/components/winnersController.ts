@@ -1,5 +1,6 @@
 import { getWinners, getCar, Winner } from '../api/carsApi';
 import { renderWinnersView } from '../views/winnersView';
+import { renderView } from '../index';
 
 let page = 1;
 const limit = 10;
@@ -17,6 +18,9 @@ export const initWinners = async () => {
   const pageSpan = document.getElementById('winners-page');
 
   const { winners, total } = await getWinners(sort, order, page, limit);
+
+  const totalPages = Math.ceil(total / limit);
+
   if (countSpan) countSpan.textContent = total.toString();
   if (pageSpan) pageSpan.textContent = page.toString();
 
@@ -37,27 +41,42 @@ export const initWinners = async () => {
     )).join('');
   }
 
-  document.getElementById('prev-winners')?.addEventListener('click', () => {
-    if (page > 1) {
-      page -= 1;
-      initWinners();
-    }
-  });
+  const prevBtn = document.getElementById('prev-winners') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-winners') as HTMLButtonElement;
 
-  document.getElementById('next-winners')?.addEventListener('click', () => {
-    page += 1;
-    initWinners();
-  });
+  if (prevBtn) {
+    prevBtn.disabled = page <= 1;
+    prevBtn.onclick = () => {
+      if (page > 1) {
+        page -= 1;
+        initWinners();
+      }
+    };
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = page >= totalPages;
+    nextBtn.onclick = () => {
+      if (page < totalPages) {
+        page += 1;
+        initWinners();
+      }
+    };
+  }
 
   document.getElementById('sort-wins')?.addEventListener('click', () => {
     sort = 'wins';
     order = order === 'ASC' ? 'DESC' : 'ASC';
+    page = 1; // сбрасываем на первую страницу при сортировке
     initWinners();
   });
 
   document.getElementById('sort-time')?.addEventListener('click', () => {
     sort = 'time';
     order = order === 'ASC' ? 'DESC' : 'ASC';
+    page = 1; // сбрасываем на первую страницу при сортировке
     initWinners();
   });
+
+  document.getElementById('garage-btn')?.addEventListener('click', () => renderView('garage'));
 };

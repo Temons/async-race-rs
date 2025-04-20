@@ -4,7 +4,7 @@ import './styles/garage.css';
 
 const app = document.getElementById('app');
 
-const renderView = async (view: string): Promise<void> => {
+export const renderView = async (view: string): Promise<void> => {
   if (!app) return;
 
   removePopup(); // Убираем попап при переходе
